@@ -6,8 +6,7 @@
   <title>Weiterleitung…</title>
   <meta name="robots" content="noindex" />
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-         display:flex;min-height:100dvh;align-items:center;justify-content:center;padding:24px}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;display:flex;min-height:100dvh;align-items:center;justify-content:center;padding:24px}
     .card{max-width:520px;text-align:center;border:1px solid #eee;border-radius:16px;padding:24px}
     button{font-size:16px;border-radius:12px;border:0;padding:12px 18px;margin-top:12px;cursor:pointer}
     .muted{color:#666;font-size:14px;margin-top:8px}
@@ -25,17 +24,14 @@
   </div>
 
   <script>
-    function getParam(name){
-      return new URL(location.href).searchParams.get(name) || "";
-    }
-    const TARGET = decodeURIComponent(getParam("u") || "");
-    document.getElementById("link").textContent = TARGET || "(kein Ziel)";
+    // gleiche Obfuskation wie auf der Startseite
+    const B64 = "aHR0cHM6Ly93d3cuYWxsbXlsaW5rcy5jb20vdmlvbGE="; // https://www.allmylinks.com/viola
+    const TARGET = atob(B64);
 
-    function go(){ if (TARGET) location.replace(TARGET); }
+    document.getElementById("link").textContent = TARGET;
 
-    // Auto-Weiterleitung nach kurzer Zeit
-    setTimeout(go, 150);
-
+    function go(){ location.replace(TARGET); }
+    setTimeout(go, 120);
     document.getElementById("go").addEventListener("click", go);
 
     document.getElementById('link').addEventListener('click', async () => {

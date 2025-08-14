@@ -11,70 +11,49 @@
     .card{max-width:520px;text-align:center;border:1px solid #eee;border-radius:16px;padding:24px}
     button{font-size:16px;border-radius:12px;border:0;padding:12px 18px;margin-top:12px;cursor:pointer}
     .muted{color:#666;font-size:14px;margin-top:8px}
-    code{background:#f6f6f6;padding:2px 6px;border-radius:6px}
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Einen Moment…</h1>
-    <p>Wir öffnen das Ziel im Standard-Browser für dich.</p>
+    <p>Wir öffnen das im Standard-Browser.</p>
     <button id="open">Jetzt im Browser öffnen</button>
-    <div class="muted">
-      Falls nichts passiert: Link kopieren und im Browser einfügen<br/>
-      <code id="linkText">https://www.allmylinks.com/viola</code>
-    </div>
+    <p class="muted">Falls nichts passiert, tippe den Button.</p>
   </div>
 
   <script>
-    // >>> Ziel-Link (bereits gesetzt) <<<
+    // 👉 Dein echtes Ziel NICHT direkt aufrufen!
     const TARGET = "https://www.allmylinks.com/viola";
-
     const ua = navigator.userAgent || "";
     const isAndroid = /android/i.test(ua);
     const isiOS = /iphone|ipad|ipod/i.test(ua);
     const isInApp = /(instagram|fb_iab|fbav|fban|facebook|tiktok|musical\.ly)/i.test(ua);
 
-    const openBtn = document.getElementById('open');
-    document.getElementById('linkText').textContent = TARGET;
+    function intentToExternal() {
+      const leaveUrl = "https://viola.morreli.com/leave?u=" + encodeURIComponent(TARGET);
 
-    function tryOpenExternal() {
       if (isAndroid) {
-        // Versuche Chrome außerhalb des In-App-Browsers zu erzwingen
-        const intent = "intent://" + TARGET.replace(/^https?:\/\//, "") +
-          "#Intent;scheme=" + (TARGET.startsWith("https") ? "https" : "http") +
-          ";package=com.android.chrome;S.browser_fallback_url=" + encodeURIComponent(TARGET) +
+        // Erzwinge Chrome und NICHT das Ziel zeigen
+        const intent = "intent://" + leaveUrl.replace(/^https?:\/\//, "") +
+          "#Intent;scheme=" + (leaveUrl.startsWith("https") ? "https" : "http") +
+          ";package=com.android.chrome;S.browser_fallback_url=" + encodeURIComponent(leaveUrl) +
           ";end";
         location.href = intent;
-        // Fallback
-        setTimeout(() => { location.href = TARGET; }, 800);
       } else if (isiOS) {
-        // iOS: Safari lässt sich nicht hart erzwingen – weiterleiten + Fallback-Tab
-        window.location.href = TARGET;
-        setTimeout(() => {
-          const w = window.open(TARGET, "_blank", "noopener");
-          // Wenn Popups blockiert sind, bleibt der Button als manueller Fallback
-        }, 400);
+        // iOS kann nicht hart in Safari springen – zeige die leave-Seite im neuen Tab
+        window.location.href = leaveUrl;
+        setTimeout(() => { window.open(leaveUrl, "_blank", "noopener"); }, 300);
       } else {
-        // Desktop/sonstiges
-        location.href = TARGET;
+        // Desktop: einfach auf leave
+        location.replace(leaveUrl);
       }
     }
 
-    // Automatischer Versuch im In-App-Browser
-    if (isInApp) {
-      setTimeout(tryOpenExternal, 200);
-    } else {
-      // Nicht im In-App-Browser: direkt weiter
-      location.replace(TARGET);
-    }
+    // Auto nur im In-App-Browser versuchen – sonst direkt auf leave
+    if (isInApp) { setTimeout(intentToExternal, 150); }
+    else { location.replace("https://viola.morreli.com/leave?u=" + encodeURIComponent(TARGET)); }
 
-    // Manueller Fallback
-    openBtn.addEventListener('click', tryOpenExternal);
-
-    // Komfort: Klick kopiert den Link
-    document.getElementById('linkText').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(TARGET); alert('Link kopiert. Im Browser einfügen.'); } catch {}
-    });
+    document.getElementById("open").addEventListener("click", intentToExternal);
   </script>
 </body>
 </html>

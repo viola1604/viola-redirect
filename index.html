@@ -21,12 +21,13 @@
     <button id="open">Jetzt im Browser öffnen</button>
     <div class="muted">
       Falls nichts passiert: Link kopieren und im Browser einfügen<br/>
-      <code id="linkText">https://DEIN_ZIEL_LINK</code>
+      <code id="linkText">https://www.allmylinks.com/viola</code>
     </div>
   </div>
 
   <script>
-    const TARGET = "https://DEIN_ZIEL_LINK"; // <<<< HIER deinen Ziel-Link einsetzen
+    // >>> Ziel-Link (bereits gesetzt) <<<
+    const TARGET = "https://www.allmylinks.com/viola";
 
     const ua = navigator.userAgent || "";
     const isAndroid = /android/i.test(ua);
@@ -47,38 +48,32 @@
         // Fallback
         setTimeout(() => { location.href = TARGET; }, 800);
       } else if (isiOS) {
-        // iOS kann Safari nicht hart erzwingen – wir öffnen ein neues Fenster
-        window.location.href = TARGET; // erster Versuch
+        // iOS: Safari lässt sich nicht hart erzwingen – weiterleiten + Fallback-Tab
+        window.location.href = TARGET;
         setTimeout(() => {
           const w = window.open(TARGET, "_blank", "noopener");
-          if (!w) {
-            // Nutzeraktion erforderlich – Button bleibt sichtbar
-          }
+          // Wenn Popups blockiert sind, bleibt der Button als manueller Fallback
         }, 400);
       } else {
-        // Desktop oder sonstiges – normal weiterleiten
+        // Desktop/sonstiges
         location.href = TARGET;
       }
     }
 
-    // automatischer Versuch bei Aufruf
+    // Automatischer Versuch im In-App-Browser
     if (isInApp) {
-      // kurze Verzögerung, damit die Seite rendert
       setTimeout(tryOpenExternal, 200);
     } else {
       // Nicht im In-App-Browser: direkt weiter
       location.replace(TARGET);
     }
 
-    // Button als manueller Fallback
+    // Manueller Fallback
     openBtn.addEventListener('click', tryOpenExternal);
 
-    // Komfort: Tippen kopiert den Link in die Zwischenablage
+    // Komfort: Klick kopiert den Link
     document.getElementById('linkText').addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(TARGET);
-        alert('Link kopiert. Füge ihn im Browser ein.');
-      } catch {}
+      try { await navigator.clipboard.writeText(TARGET); alert('Link kopiert. Im Browser einfügen.'); } catch {}
     });
   </script>
 </body>

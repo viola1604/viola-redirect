@@ -1,67 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Viola Morreli – Official Links</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Öffne im Browser…</title>
+  <meta name="robots" content="noindex" />
   <style>
-    body {
-      margin:0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f9f4f9, #f3e6f7);
-      color:#2c2c2c;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      text-align:center;
-    }
-    .card {
-      background:rgba(255,255,255,0.9);
-      padding:2rem;
-      border-radius:16px;
-      box-shadow:0 6px 20px rgba(0,0,0,0.15);
-      max-width:420px;
-      width:90%;
-    }
-    h1 {
-      font-size:1.9rem;
-      margin-bottom:0.5rem;
-      color:#8b2d8f;
-    }
-    p {
-      font-size:1rem;
-      color:#555;
-      margin-bottom:1.8rem;
-    }
-    a.btn {
-      display:inline-block;
-      background:#8b2d8f;
-      color:white;
-      padding:0.8rem 1.6rem;
-      border-radius:10px;
-      text-decoration:none;
-      font-weight:bold;
-      font-size:1rem;
-      transition:background 0.2s, transform 0.1s;
-    }
-    a.btn:hover {
-      background:#732676;
-      transform:scale(1.03);
-    }
-    .hint {
-      margin-top:1rem;
-      font-size:0.85rem;
-      color:#777;
-    }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+         display:flex;min-height:100dvh;align-items:center;justify-content:center;padding:24px}
+    .card{max-width:520px;text-align:center;border:1px solid #eee;border-radius:16px;padding:24px}
+    button{font-size:16px;border-radius:12px;border:0;padding:12px 18px;margin-top:12px;cursor:pointer}
+    .muted{color:#666;font-size:14px;margin-top:8px}
+    code{background:#f6f6f6;padding:2px 6px;border-radius:6px}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Viola Morreli ✨</h1>
-    <p>Tap below to see all my official links.</p>
-    <a class="btn" href="https://allmylinks.com/viola" target="_blank" rel="noopener noreferrer">Continue</a>
-    <div class="hint">You’ll be redirected to my official AllMyLinks page.</div>
+    <h1>Einen Moment…</h1>
+    <p>Wir öffnen das Ziel im Standard-Browser für dich.</p>
+    <button id="open">Jetzt im Browser öffnen</button>
+    <div class="muted">
+      Falls nichts passiert: Link kopieren und im Browser einfügen<br/>
+      <code id="linkText">https://DEIN_ZIEL_LINK</code>
+    </div>
   </div>
+
+  <script>
+    const TARGET = "https://DEIN_ZIEL_LINK"; // <<<< HIER deinen Ziel-Link einsetzen
+
+    const ua = navigator.userAgent || "";
+    const isAndroid = /android/i.test(ua);
+    const isiOS = /iphone|ipad|ipod/i.test(ua);
+    const isInApp = /(instagram|fb_iab|fbav|fban|facebook|tiktok|musical\.ly)/i.test(ua);
+
+    const openBtn = document.getElementById('open');
+    document.getElementById('linkText').textContent = TARGET;
+
+    function tryOpenExternal() {
+      if (isAndroid) {
+        // Versuche Chrome außerhalb des In-App-Browsers zu erzwingen
+        const intent = "intent://" + TARGET.replace(/^https?:\/\//, "") +
+          "#Intent;scheme=" + (TARGET.startsWith("https") ? "https" : "http") +
+          ";package=com.android.chrome;S.browser_fallback_url=" + encodeURIComponent(TARGET) +
+          ";end";
+        location.href = intent;
+        // Fallback
+        setTimeout(() => { location.href = TARGET; }, 800);
+      } else if (isiOS) {
+        // iOS kann Safari nicht hart erzwingen – wir öffnen ein neues Fenster
+        window.location.href = TARGET; // erster Versuch
+        setTimeout(() => {
+          const w = window.open(TARGET, "_blank", "noopener");
+          if (!w) {
+            // Nutzeraktion erforderlich – Button bleibt sichtbar
+          }
+        }, 400);
+      } else {
+        // Desktop oder sonstiges – normal weiterleiten
+        location.href = TARGET;
+      }
+    }
+
+    // automatischer Versuch bei Aufruf
+    if (isInApp) {
+      // kurze Verzögerung, damit die Seite rendert
+      setTimeout(tryOpenExternal, 200);
+    } else {
+      // Nicht im In-App-Browser: direkt weiter
+      location.replace(TARGET);
+    }
+
+    // Button als manueller Fallback
+    openBtn.addEventListener('click', tryOpenExternal);
+
+    // Komfort: Tippen kopiert den Link in die Zwischenablage
+    document.getElementById('linkText').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(TARGET);
+        alert('Link kopiert. Füge ihn im Browser ein.');
+      } catch {}
+    });
+  </script>
 </body>
 </html>

@@ -6,8 +6,7 @@
   <title>Öffne im Browser…</title>
   <meta name="robots" content="noindex" />
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-         display:flex;min-height:100dvh;align-items:center;justify-content:center;padding:24px}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;display:flex;min-height:100dvh;align-items:center;justify-content:center;padding:24px}
     .card{max-width:520px;text-align:center;border:1px solid #eee;border-radius:16px;padding:24px}
     button{font-size:16px;border-radius:12px;border:0;padding:12px 18px;margin-top:12px;cursor:pointer}
     .muted{color:#666;font-size:14px;margin-top:8px}
@@ -22,38 +21,34 @@
   </div>
 
   <script>
-    // 👉 Dein echtes Ziel NICHT direkt aufrufen!
-    const TARGET = "https://www.allmylinks.com/viola";
+    // Ziel *obfuskiert* (Base64), kein Klartext!
+    const B64 = "aHR0cHM6Ly93d3cuYWxsbXlsaW5rcy5jb20vdmlvbGE="; // https://www.allmylinks.com/viola
+    const TARGET = atob(B64); // nur im externen Browser sichtbar
+
     const ua = navigator.userAgent || "";
     const isAndroid = /android/i.test(ua);
     const isiOS = /iphone|ipad|ipod/i.test(ua);
-    const isInApp = /(instagram|fb_iab|fbav|fban|facebook|tiktok|musical\.ly)/i.test(ua);
 
-    function intentToExternal() {
-      const leaveUrl = "https://viola.morreli.com/leave?u=" + encodeURIComponent(TARGET);
+    function openExternal(){
+      const leaveUrl = "https://viola.morreli.com/leave"; // KEINE Query, nichts zu scannen
 
       if (isAndroid) {
-        // Erzwinge Chrome und NICHT das Ziel zeigen
-        const intent = "intent://" + leaveUrl.replace(/^https?:\/\//, "") +
-          "#Intent;scheme=" + (leaveUrl.startsWith("https") ? "https" : "http") +
+        const intent = "intent://" + leaveUrl.replace(/^https?:\/\//,"") +
+          "#Intent;scheme=" + (leaveUrl.startsWith("https")?"https":"http") +
           ";package=com.android.chrome;S.browser_fallback_url=" + encodeURIComponent(leaveUrl) +
           ";end";
         location.href = intent;
+        setTimeout(()=>location.href=leaveUrl, 400);
       } else if (isiOS) {
-        // iOS kann nicht hart in Safari springen – zeige die leave-Seite im neuen Tab
         window.location.href = leaveUrl;
-        setTimeout(() => { window.open(leaveUrl, "_blank", "noopener"); }, 300);
+        setTimeout(()=>{ window.open(leaveUrl, "_blank", "noopener"); }, 300);
       } else {
-        // Desktop: einfach auf leave
         location.replace(leaveUrl);
       }
     }
 
-    // Auto nur im In-App-Browser versuchen – sonst direkt auf leave
-    if (isInApp) { setTimeout(intentToExternal, 150); }
-    else { location.replace("https://viola.morreli.com/leave?u=" + encodeURIComponent(TARGET)); }
-
-    document.getElementById("open").addEventListener("click", intentToExternal);
+    setTimeout(openExternal, 120);
+    document.getElementById("open").addEventListener("click", openExternal);
   </script>
 </body>
 </html>

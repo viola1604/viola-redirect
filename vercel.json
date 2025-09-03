@@ -1,6 +1,6 @@
 {
   "routes": [
     { "src": "^/$", "dest": "/index.html" },
-    { "src": "^/beacons$", "dest": "/leave.html" }
+    { "src": "^/links$", "dest": "/leave.html" }
   ]
 }

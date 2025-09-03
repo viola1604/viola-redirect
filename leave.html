@@ -3,40 +3,82 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Weiterleitung…</title>
-  <meta name="robots" content="noindex" />
+  <title>Weiter zu meinen Links</title>
+  <meta name="referrer" content="no-referrer" />
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;display:flex;min-height:100dvh;align-items:center;justify-content:center;padding:24px}
-    .card{max-width:520px;text-align:center;border:1px solid #eee;border-radius:16px;padding:24px}
-    button{font-size:16px;border-radius:12px;border:0;padding:12px 18px;margin-top:12px;cursor:pointer}
-    .muted{color:#666;font-size:14px;margin-top:8px}
-    code{background:#f6f6f6;padding:2px 6px;border-radius:6px}
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; padding:24px; line-height:1.5; background:#fafafa; }
+    .card { max-width:560px; margin:24px auto; padding:24px; border:1px solid #e5e7eb; border-radius:16px; background:#fff; box-shadow:0 6px 20px rgba(0,0,0,.06); }
+    h1 { font-size:1.6rem; margin:0 0 8px; }
+    p { color:#374151; margin:8px 0; }
+    .btn { display:block; width:100%; padding:14px 16px; margin-top:12px; border-radius:12px; border:1px solid #e5e7eb; background:#fff; text-align:center; text-decoration:none; font-weight:600; }
+    .primary { background:#111827; color:#fff; border-color:#111827; }
+    .hint { font-size:.95rem; color:#6b7280; margin-top:12px; }
+    .ok { color:#059669; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Weiterleiten…</h1>
-    <p>Wir bringen dich gleich zur Zielseite.</p>
-    <button id="go">Jetzt öffnen</button>
-    <div class="muted">Falls es nicht automatisch geht, tippe den Button oder kopiere:<br>
-      <code id="link"></code>
-    </div>
+    <h1>Weiter zu meinen Links</h1>
+    <p>Öffne die Seite im Standard-Browser, damit alles korrekt funktioniert.</p>
+
+    <a id="openAndroid" class="btn primary" href="#">In Chrome öffnen (Android)</a>
+    <a id="openSafari" class="btn" href="#">In Safari öffnen (iPhone)</a>
+    <a id="normalLink" class="btn" href="https://violamorreli.com/?src=tiktok_interstitial">Direkt zu Beacons</a>
+    <a id="copyLink" class="btn" href="#">Link kopieren</a>
+
+    <p id="hint" class="hint">Tipp: In TikTok oben rechts ••• tippen → <b>„Im Browser öffnen“</b>.</p>
+    <p id="status" class="hint"></p>
   </div>
 
-  <script>
-    // gleiche Obfuskation wie auf der Startseite
-    const B64 = "aHR0cHM6Ly93d3cuYWxsbXlsaW5rcy5jb20vdmlvbGE="; // https://www.allmylinks.com/viola
-    const TARGET = atob(B64);
+<script>
+  // Deine Beacons-Seite (Custom Domain aktiv)
+  const BEACONS = "https://violamorreli.com/?src=tiktok_interstitial";
 
-    document.getElementById("link").textContent = TARGET;
+  const ua = navigator.userAgent.toLowerCase();
+  const isTikTok = ua.includes("tiktok") || ua.includes("musical.ly");
+  const isAndroid = ua.includes("android");
+  const isIOS = /iphone|ipad|ipod/.test(ua);
 
-    function go(){ location.replace(TARGET); }
-    setTimeout(go, 120);
-    document.getElementById("go").addEventListener("click", go);
+  // Android: Chrome via intent:// öffnen (Fallback: normaler Link)
+  document.getElementById("openAndroid").onclick = (e) => {
+    e.preventDefault();
+    if (isAndroid) {
+      const u = new URL(BEACONS);
+      const hostAndPath = u.host + u.pathname + (u.search || "");
+      window.location.href = `intent://${hostAndPath}#Intent;scheme=https;package=com.android.chrome;end`;
+      setTimeout(() => { window.location.href = BEACONS; }, 1200);
+    } else {
+      window.location.href = BEACONS;
+    }
+  };
 
-    document.getElementById('link').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(TARGET); alert('Link kopiert.'); } catch {}
-    });
-  </script>
+  // iOS: Safari kann nicht erzwungen werden → Hinweis + Link
+  document.getElementById("openSafari").onclick = (e) => {
+    e.preventDefault();
+    if (isIOS && isTikTok) {
+      alert('In TikTok oben rechts ••• tippen und „In Safari öffnen“ wählen. Klicke danach den Button erneut.');
+    } else {
+      window.location.href = BEACONS;
+    }
+  };
+
+  // Copy-Fallback
+  document.getElementById("copyLink").onclick = async (e) => {
+    e.preventDefault();
+    try {
+      await navigator.clipboard.writeText(BEACONS);
+      const s = document.getElementById("status");
+      s.textContent = "Link kopiert. Öffne Chrome/Safari und füge ihn ein.";
+      s.className = "hint ok";
+    } catch {
+      document.getElementById("status").textContent = "Halte den Button gedrückt und wähle „Linkadresse kopieren“.";
+    }
+  };
+
+  // UI aufräumen
+  if (!isAndroid) document.getElementById("openAndroid").style.display = "none";
+  if (!isIOS) document.getElementById("openSafari").style.display = "none";
+  if (!isTikTok) document.getElementById("hint").style.display = "none";
+</script>
 </body>
 </html>

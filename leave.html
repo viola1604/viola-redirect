@@ -1,120 +1,3 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Viola Morreli — Open in Browser</title>
-  <meta name="referrer" content="no-referrer" />
-  <style>
-    * { box-sizing: border-box; margin:0; padding:0; }
-    body {
-      font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      color: #fff;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-    /* Hintergrundbild */
-    body::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: url("https://raw.githubusercontent.com/viola1604/viola-redirect/main/bg.png") no-repeat center center / cover;
-      filter: brightness(0.55) blur(2px);
-      z-index: -2;
-    }
-    /* Overlay-Gradient */
-    body::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
-      z-index: -1;
-    }
-    .card {
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 32px 24px;
-      max-width: 480px;
-      width: 100%;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-      text-align: center;
-      animation: fadeIn 0.6s ease;
-    }
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-    .subtitle {
-      margin: 0 0 20px;
-      font-size: 1rem;
-      color: #f0f0f0;
-    }
-    .btn {
-      display:block;
-      width:100%;
-      padding:14px 16px;
-      margin:10px 0;
-      border-radius:14px;
-      border:2px solid transparent;
-      font-weight:700;
-      text-decoration:none;
-      cursor:pointer;
-      font-size:1rem;
-      transition: all 0.25s ease;
-    }
-    .btn-primary {
-      background:#ff4da6;
-      color:#fff;
-      border-color:#ff4da6;
-      box-shadow:0 4px 15px rgba(255,77,166,0.4);
-    }
-    .btn-primary:hover { background:#ff338f; }
-    .btn-outline {
-      background:transparent;
-      color:#ff93c3;
-      border-color:#ff93c3;
-    }
-    .btn-outline:hover {
-      background:rgba(255,255,255,0.1);
-    }
-    .hint {
-      margin-top:14px;
-      font-size:.9rem;
-      color:#ddd;
-    }
-    .ok { color:#4ade80; }
-    footer {
-      margin-top:16px;
-      font-size:.8rem;
-      color:#bbb;
-    }
-    @keyframes fadeIn {
-      from { opacity:0; transform:translateY(20px); }
-      to { opacity:1; transform:translateY(0); }
-    }
-  </style>
-</head>
-<body>
-  <main class="card">
-    <h1>Viola Morreli ✨</h1>
-    <p class="subtitle">Almost there — open in your default browser to view all my links correctly.</p>
-
-    <a id="openAndroid" class="btn btn-primary" href="#">Open in Chrome (Android) 🌐</a>
-    <a id="openSafari" class="btn btn-primary" href="#">Open in Safari (iPhone) 🍎</a>
-    <a id="normalLink" class="btn btn-outline" href="https://violamorreli.com?src=tiktok_interstitial">Open Directly</a>
-    <a id="copyLink" class="btn btn-outline" href="#">Copy Link 📋</a>
-
-    <p id="hint" class="hint">Tip: In TikTok tap the ••• top right → <b>“Open in Browser”</b>.</p>
-    <p id="status" class="hint"></p>
-
-    <footer>© Viola Morreli · Safe redirect page</footer>
-  </main>
-
 <script>
   const BEACONS = "https://violamorreli.com?src=tiktok_interstitial";
 
@@ -123,40 +6,39 @@
   const isAndroid = ua.includes("android");
   const isIOS = /iphone|ipad|ipod/.test(ua);
 
+  // 👇 NEU: stabilerer Android-Flow mit Fallback-URL
   document.getElementById("openAndroid").onclick = (e) => {
     e.preventDefault();
     if (isAndroid) {
       const u = new URL(BEACONS);
-      const hostAndPath = u.host + u.pathname + (u.search || "");
-      window.location.href = `intent://${hostAndPath}#Intent;scheme=https;package=com.android.chrome;end`;
-      setTimeout(() => { window.location.href = BEACONS; }, 1200);
+      const proto = u.protocol.replace(":", ""); // https
+      const path  = u.pathname + (u.search || "") + (u.hash || "");
+      // Intent mit Fallback direkt auf deine Beacons-URL
+      const intentUrl =
+        `intent://${u.host}${path}` +
+        `#Intent;scheme=${proto};package=com.android.chrome;` +
+        `S.browser_fallback_url=${encodeURIComponent(BEACONS)};end`;
+
+      // 1) Intent → sollte Chrome öffnen
+      window.location.href = intentUrl;
+
+      // 2) Falls Intent blockiert → nach kurzer Zeit normal öffnen
+      setTimeout(() => {
+        window.location.href = BEACONS;
+      }, 1200);
     } else {
       window.location.href = BEACONS;
     }
   };
 
+  // iOS bleibt gleich:
   document.getElementById("openSafari").onclick = (e) => {
     e.preventDefault();
     if (isIOS && isTikTok) {
-      alert('In TikTok tap ••• and choose “Open in Safari”. Then tap again.');
+      alert('In TikTok: oben rechts ••• → „Open in Safari“. Danach erneut tippen.');
     }
     window.location.href = BEACONS;
   };
 
-  document.getElementById("copyLink").onclick = async (e) => {
-    e.preventDefault();
-    try {
-      await navigator.clipboard.writeText(BEACONS);
-      document.getElementById("status").textContent = "Link copied! Paste in Chrome/Safari.";
-      document.getElementById("status").className = "hint ok";
-    } catch {
-      document.getElementById("status").textContent = "Press & hold → Copy link address.";
-    }
-  };
-
-  if (!isAndroid) document.getElementById("openAndroid").style.display = "none";
-  if (!isIOS) document.getElementById("openSafari").style.display = "none";
-  if (!isTikTok) document.getElementById("hint").style.display = "none";
+  // Copy bleibt wie gehabt …
 </script>
-</body>
-</html>
